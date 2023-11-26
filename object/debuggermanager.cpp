@@ -25,9 +25,9 @@ int DebuggerManager::createDebug(DebugSetting set)
         }
 
     }else if(set.protocolType==ProtocolType::TCP_CLIENT||set.protocolType==ProtocolType::TCP_SERVRE){
-
+        return -2;
     }else{
-        return -1;
+        return -2;
     }
     obj->setId(id);
     connect(obj.get(),&DebugObject::newData,this,&DebuggerManager::newData);

@@ -11,7 +11,7 @@ bool TcpSocket::start()
     return true;
 }
 
-bool TcpSocket::write(QByteArray by,QHostAddress ip,int port)
+bool TcpSocket::write(QByteArray by,IOFormat format,QHostAddress ip,int port)
 {
     return true;
 }

@@ -15,17 +15,19 @@ public:
     int getId();
     void setHeadSetting(HeadSetting setting);
     void setValue(ValueSetting setting);
-    void setShowFormat(ShowFormat setting);
+    void setOutputFormat(IOFormat setting);
     bool isOpen();
     bool getValue(ValueSetting val,QString& ret);
     bool getValue(QString& ret);
-    virtual QByteArray getLastData();
+    QByteArray getFomateData(const QByteArray &data,IOFormat format);
+    QByteArray getFomateData(const QByteArray &data,IOFormat format,char separator);
+    QByteArray getLastData();
 signals:
     void newData(int id,QByteArray data);
 
 public:
     virtual bool start()=0;
-    virtual bool write(QByteArray by,QHostAddress ip,int port)=0;
+    virtual bool write(QByteArray by,IOFormat format,QHostAddress ip,int port)=0;
 protected:
     DebugSetting setting;
     bool open;

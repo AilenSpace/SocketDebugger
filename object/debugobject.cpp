@@ -40,9 +40,9 @@ void DebugObject::setValue(ValueSetting setting)
     this->setting.value=setting;
 }
 
-void DebugObject::setShowFormat(ShowFormat setting)
+void DebugObject::setOutputFormat(IOFormat setting)
 {
-    this->setting.showFormat=setting;
+    this->setting.oFormat=setting;
 }
 
 bool DebugObject::isOpen()
@@ -52,9 +52,10 @@ bool DebugObject::isOpen()
 
 bool DebugObject::getValue(ValueSetting val, QString &ret)
 {
-    ret="0";
+    ret="查询失败";
     int offset=val.valueOffset-1;
     if(offset<0)return false;
+
     if(ValueBitType::INT8_T==val.valueBitType){
         if(offset+1>lastBy.size()){
             return false;
@@ -101,14 +102,33 @@ bool DebugObject::getValue(QString &ret)
     return getValue(this->setting.value,ret);
 }
 
+QByteArray DebugObject::getFomateData(const QByteArray &data, IOFormat format)
+{
+    if(format==IOFormat::TO_HEX){
+        return data.toHex();
+    }else if(format==IOFormat::FROM_HEX){
+        return QByteArray::fromHex(data);
+    }else if(format==IOFormat::BYTE_ARRAY){
+        return data;
+    }
+    return data;
+}
+
+QByteArray DebugObject::getFomateData(const QByteArray &data, IOFormat format, char separator)
+{
+    if(format==IOFormat::TO_HEX){
+        return data.toHex(separator);
+    }else if(format==IOFormat::FROM_HEX){
+        return QByteArray::fromHex(data);
+    }else if(format==IOFormat::BYTE_ARRAY){
+        return data;
+    }
+    return data;
+}
+
 QByteArray DebugObject::getLastData()
 {
-    if(setting.showFormat==ShowFormat::HEX){
-        return lastBy.toHex(' ');
-    }else if(setting.showFormat==ShowFormat::STRING){
-        return lastBy;
-    }
-    return lastBy;
+    return getFomateData(lastBy,setting.oFormat,' ');
 }
 
 bool DebugObject::start()

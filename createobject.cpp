@@ -34,9 +34,18 @@ void CreateObject::on_create_clicked()
     val.signedType=SignedType::Signed;
     val.valueOffset=0;
     DebugSetting setting;
-    setting.ip=QHostAddress(ui->lineEditIP->text());
-    setting.port=ui->lineEditPort->text().toUInt();
-    setting.showFormat=ShowFormat::STRING;
+
+    setting.oFormat=IOFormat::BYTE_ARRAY;
+
+    QVariant type=ui->comboBoxProto->itemData(ui->comboBoxProto->currentIndex(),Qt::UserRole);
+    setting.protocolType=ProtocolType(type.toInt());
+    if(setting.protocolType==ProtocolType::UDP_CLIENT){
+        setting.ip=QHostAddress("");
+        setting.port=0;
+    }else{
+        setting.ip=QHostAddress(ui->lineEditIP->text());
+        setting.port=ui->lineEditPort->text().toUInt();
+    }
 
     HeadSetting head;
     head.hasPacketHead=false;
@@ -45,8 +54,7 @@ void CreateObject::on_create_clicked()
 
     setting.head=head;
     setting.value=val;
-    QVariant type=ui->comboBoxProto->itemData(ui->comboBoxProto->currentIndex(),Qt::UserRole);
-    setting.protocolType=ProtocolType(type.toInt());
+
     emit createDebug(setting);
     this->close();
 }
@@ -60,6 +68,25 @@ void CreateObject::on_cancel_clicked()
 
 void CreateObject::on_comboBoxProto_currentIndexChanged(int index)
 {
+
+}
+
+
+void CreateObject::on_comboBoxProto_currentTextChanged(const QString &arg1)
+{
+    QVariant var=ui->comboBoxProto->currentData(Qt::UserRole);
+    ProtocolType type=ProtocolType(var.toInt());
+    if(type==ProtocolType::UDP_CLIENT){
+        ui->label_2->setVisible(false);
+        ui->label->setVisible(false);
+        ui->lineEditIP->setVisible(false);
+        ui->lineEditPort->setVisible(false);
+    }else{
+        ui->label_2->setVisible(true);
+        ui->label->setVisible(true);
+        ui->lineEditIP->setVisible(true);
+        ui->lineEditPort->setVisible(true);
+    }
 
 }
 

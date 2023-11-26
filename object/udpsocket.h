@@ -10,7 +10,7 @@ class UdpSocket : public DebugObject
 public:
     explicit UdpSocket(DebugSetting setting,QObject *parent = nullptr);
     virtual bool start() final;
-    virtual bool write(QByteArray by,QHostAddress ip,int port) final;
+    virtual bool write(QByteArray by,IOFormat format,QHostAddress ip,int port) final;
 signals:
 
 private:

@@ -2,6 +2,8 @@
 #include "./ui_widget.h"
 #include <QPushButton>
 #include<QLabel>
+#include<QClipboard>
+#include<QMessageBox>
 #include "createobject.h"
 
 Widget::Widget(QWidget *parent)
@@ -16,7 +18,7 @@ Widget::Widget(QWidget *parent)
 
 void Widget::initCtl()
 {
-    resize(1280,720);
+    resize(1280,800);
     QList<int> sizes;
     sizes<<2000<<8000;
     ui->splitterH->setSizes(sizes);
@@ -45,7 +47,7 @@ void Widget::initStyle()
                           "QTreeWidget{font-size:10pt;}"
                           "QTabWidget QTabBar::tab{background-color :rgb(206,230,234);}"
                           "QTabWidget QTabBar::tab:selected{background-color :rgb(230,240,234);}"
-   );
+                          );
     this->setStyleSheet(style);
 
 }
@@ -58,9 +60,14 @@ void Widget::initData()
     for(int i=(int)ProtocolType::MIN;i<(int)ProtocolType::MAX;i++){
         ui->comboBoxProto->addItem(protocolTypeToString(ProtocolType(i)),i);
     }
-    for(int i=(int)ShowFormat::MIN;i<(int)ShowFormat::MAX;i++){
-        ui->comboBoxOutFormat->addItem(showFormatToString(ShowFormat(i)),i);
+    for(int i=(int)IOFormat::MIN;i<(int)IOFormat::MAX;i++){
+        ui->comboBoxOutFormat->addItem(IOFormatToString(IOFormat(i)),i);
     }
+    for(int i=(int)IOFormat::MIN+1;i<(int)IOFormat::MAX;i++){
+        ui->inputFormat->addItem(IOFormatToString(IOFormat(i)),i);
+    }
+    ui->inputFormat->setCurrentText(IOFormatToString(IOFormat::BYTE_ARRAY));
+
 
     for(int i=(int)ValueBitType::MIN;i<(int)ValueBitType::MAX;i++){
         ui->bitType->addItem(valueBitTypeToString(ValueBitType(i)),i);
@@ -71,6 +78,7 @@ void Widget::initData()
     for(int i=(int)SignedType::MIN;i<(int)SignedType::MAX;i++){
         ui->signedType->addItem(signedTypeToString(SignedType(i)),i);
     }
+
 
     ui->sendIP->setText("127.0.0.1");
     ui->sendPort->setText("9060");
@@ -89,7 +97,7 @@ void Widget::initData()
     DebugSetting setting;
     setting.ip=QHostAddress("127.0.0.1");
     setting.port=9060;
-    setting.showFormat=ShowFormat::STRING;
+    setting.oFormat=IOFormat::BYTE_ARRAY;
 
     HeadSetting head;
     head.hasPacketHead=false;
@@ -125,7 +133,7 @@ void Widget::on_createObject_clicked()
                           "QTreeWidget{font-size:10pt;}"
                           "QTabWidget QTabBar::tab{background-color :rgb(206,230,234);}"
                           "QTabWidget QTabBar::tab:selected{background-color :rgb(230,240,234);}"
-   );
+                          );
     widget->setStyleSheet(style);
     connect(widget,&CreateObject::createDebug,this,&Widget::createDebug);
     widget->setAttribute(Qt::WA_DeleteOnClose,true);
@@ -138,7 +146,7 @@ void Widget::on_deleteObject_clicked()
     if(ui->treeWidget->currentIndex().row()>=0){
         ui->treeWidget->clear(ui->treeWidget->currentItem());
     }else{
-        qDebug()<<"未选择节点";
+        showError("未选择删除节点");
     }
 }
 
@@ -150,12 +158,9 @@ void Widget::newData(int id, QByteArray by)
 
     std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
     if(obj){
-        QString ret=0;
-        int res=obj->getValue(ret);
-        ui->lineEditValue->setText(ret);
-        qDebug()<<"query:"<<ret<<res;
+        updateValue(obj);
     }else{
-        qDebug()<<"查询失败";
+
     }
 }
 
@@ -166,15 +171,13 @@ void Widget::updateUI(std::shared_ptr<DebugObject> obj)
     ui->lineEditProtoIP->setText(set.ip.toString());
     ui->lineEditProtoPort->setText(QString::number(set.port));
     ui->comboBoxProto->setCurrentText(protocolTypeToString(set.protocolType));
-    ui->comboBoxOutFormat->setCurrentText(showFormatToString(set.showFormat));
+    ui->comboBoxOutFormat->setCurrentText(IOFormatToString(set.oFormat));
 
     ui->bitType->setCurrentText(valueBitTypeToString(set.value.valueBitType));
     ui->comboBoxEndian->setCurrentText(endianTypeToString(set.value.endianType));
     ui->signedType->setCurrentText(signedTypeToString(set.value.signedType));
     ui->lineEditOffset->setText(QString::number(set.value.valueOffset));
-    QString ret=0;
-    obj->getValue(ret);
-    ui->lineEditValue->setText(ret);
+    updateValue(obj);
     if(set.protocolType==ProtocolType::UDP_CLIENT){
         ui->sendIP->setVisible(true);
         ui->sendPort->setVisible(true);
@@ -187,8 +190,9 @@ void Widget::updateUI(std::shared_ptr<DebugObject> obj)
         ui->labelPort->setVisible(false);
     }
 
-    ui->inputEdit->setText("");
-    ui->outputLab->setText(obj->getLastData());
+    QByteArray &&by=obj->getLastData();
+    ui->outputLab->setText(by);
+    setHighlight();
 }
 
 
@@ -208,10 +212,13 @@ void Widget::on_sendInput_clicked()
 {
     std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
     if(obj){
-        obj->write(ui->inputEdit->toPlainText().toUtf8(), QHostAddress(ui->sendIP->text()),
+        QVariant var;
+        var= ui->inputFormat->currentData(Qt::UserRole);
+
+        obj->write(ui->inputEdit->toPlainText().toUtf8(),IOFormat(var.toInt()), QHostAddress(ui->sendIP->text()),
                    ui->sendPort->text().toInt());
     }else{
-        qDebug()<<"发送失败 ";
+        showError("发送失败 ");
     }
 }
 
@@ -232,10 +239,7 @@ void Widget::on_query_clicked()
 {
     std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
     if(obj){
-        QString ret=0;
-        int res=obj->getValue(ret);
-        ui->lineEditValue->setText(ret);
-        qDebug()<<"query:"<<ret<<res;
+        updateValue(obj);
     }else{
         qDebug()<<"查询失败";
     }
@@ -267,7 +271,7 @@ void Widget::on_setValSetting_clicked()
         obj->setValue(val);
         updateUI(obj);
     }else{
-        qDebug()<<"应用失败";
+       showError("应用失败");
     }
 
 }
@@ -280,11 +284,11 @@ void Widget::on_updateOutpt_clicked()
         QVariant var;
         var= ui->comboBoxOutFormat->currentData(Qt::UserRole);
 
-        obj->setShowFormat(ShowFormat(var.toInt()));
+        obj->setOutputFormat(IOFormat(var.toInt()));
         updateUI(obj);
 
     }else{
-        qDebug()<<"应用失败";
+        showError("应用失败");
     }
 }
 
@@ -298,6 +302,99 @@ void Widget::createDebug(DebugSetting set)
         item->setData(0,Qt::DisplayRole+1,ret);
         items<<item;
         ui->treeWidget->appendItem(nullptr,items);
+    }else if(ret==-2){
+        showError("暂不支持该类型\n");
+    }else{
+        showError("创建失败");
     }
 }
+
+
+void Widget::on_copyBtn_clicked()
+{
+    QClipboard *clip = QApplication::clipboard();
+    clip->setText(ui->outputLab->toPlainText().replace(" ",""),QClipboard::Clipboard);
+}
+
+void Widget::setHighlight()
+{
+    QString &&by=ui->outputLab->toPlainText();
+    ui->outputLab->setText(by);
+    QTextCursor cursor = ui->outputLab->textCursor();
+    int tmpStart=ui->highlightStart->value();
+    int tmpEnd=ui->highlightEnd->value();
+    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
+    if(obj){
+        if(obj->getDebugSetting().oFormat==IOFormat::TO_HEX){
+            tmpStart=3*tmpStart;
+            tmpEnd=3*tmpEnd;
+        }
+    }
+    tmpEnd=tmpStart+tmpEnd;
+    tmpStart=tmpStart>by.length()?by.length():tmpStart;
+    tmpEnd=tmpEnd>by.length()?by.length():tmpEnd;
+
+    cursor.setPosition(tmpStart);
+    cursor.setPosition(tmpEnd,QTextCursor::MoveMode::KeepAnchor);
+    QTextCharFormat fmt;
+    fmt.setForeground(QColor(Qt::red));
+    cursor.mergeCharFormat(fmt);    //设置文本格式
+    cursor.clearSelection(); //撤销选中
+    cursor.movePosition(QTextCursor::EndOfLine);  //cursor和anchor均移至末尾
+}
+template <class  T>
+T calcBitValue(T i,int index,int n)
+{
+    int leftShift=sizeof(T)*8-(index+n);
+    i<<=leftShift;
+    i>>=index+leftShift;
+    return i;
+};
+
+void Widget::updateValue(std::shared_ptr<DebugObject> obj)
+{
+    QString res="";
+    bool ret=obj->getValue(res);
+    if(!ret){
+        ui->bitValue->setText("查询失败");
+        ui->lineEditValue->setText("查询失败");
+        return;
+    }
+    ui->lineEditValue->setText(res);
+
+    int start=ui->bitStart->value();
+    int count=ui->bitCount->value();
+    ValueBitType type=obj->getDebugSetting().value.valueBitType;
+
+    if(type==ValueBitType::INT8_T){
+        uint8_t v= res.toInt();
+        ui->bitValue->setText(QString("%1").arg(calcBitValue(v,start,count)));
+    } else   if(type==ValueBitType::INT16_T){
+        uint16_t v= res.toInt();
+        ui->bitValue->setText(QString("%1").arg(calcBitValue(v,start,count)));
+    }else  if(type==ValueBitType::INT32_T){
+        uint32_t v= res.toInt();
+        ui->bitValue->setText(QString("%1").arg(calcBitValue(v,start,count)));
+    }else{
+        ui->bitValue->setText("不支持的类型查询");
+    }
+}
+
+void Widget::showError(QString error)
+{
+    QMessageBox::warning(nullptr,"错误",error);
+}
+
+
+void Widget::on_highlightStart_valueChanged(int arg1)
+{
+    setHighlight();
+}
+
+
+void Widget::on_highlightEnd_valueChanged(int arg1)
+{
+    setHighlight();
+}
+
 

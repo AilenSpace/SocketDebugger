@@ -298,16 +298,13 @@
            </attribute>
            <layout class="QGridLayout" name="gridLayout_8">
             <item row="0" column="0">
-             <layout class="QFormLayout" name="formLayout">
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_18">
-                <property name="text">
-                 <string>字节序</string>
+             <layout class="QGridLayout" name="gridLayout_14">
+              <item row="3" column="1">
+               <widget class="QLineEdit" name="lineEditOffset">
+                <property name="toolTip">
+                 <string>需要查询的值开始偏移位置(1开始)</string>
                 </property>
                </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QComboBox" name="comboBoxEndian"/>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_19">
@@ -326,6 +323,9 @@
                 </property>
                </widget>
               </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="comboBoxEndian"/>
+              </item>
               <item row="3" column="0">
                <widget class="QLabel" name="label_2">
                 <property name="text">
@@ -333,17 +333,13 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="QLineEdit" name="lineEditOffset">
-                <property name="toolTip">
-                 <string>需要查询的值开始偏移位置(1开始)</string>
-                </property>
-               </widget>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="bitType"/>
               </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_18">
                 <property name="text">
-                 <string>值(DEC)</string>
+                 <string>字节序</string>
                 </property>
                </widget>
               </item>
@@ -357,8 +353,74 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="1">
-               <widget class="QComboBox" name="bitType"/>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>值(DEC)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="2">
+               <widget class="QLabel" name="label_31">
+                <property name="text">
+                 <string>Bit值(DEC)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="3">
+               <widget class="QLineEdit" name="bitValue">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="toolTip">
+                 <string>根据上述设置每次收到消息自动查询一次</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_30">
+                <property name="text">
+                 <string>BitCount</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QSpinBox" name="bitCount">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;BitCount位个数；如start为0;count为3,范围就为[0,2]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QSpinBox" name="bitStart">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;bit位的起始索引0开始&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="label_29">
+                <property name="text">
+                 <string>BitStart</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_32">
+                <property name="text">
+                 <string>支持类型</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_33">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;int8，int16，int32 有符号或无符号&lt;/p&gt;&lt;p&gt;注意:不支持faloat32\double64查询&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>悬浮到当前空间查看支持类型</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </item>
@@ -407,6 +469,11 @@
              </layout>
             </item>
            </layout>
+          </widget>
+          <widget class="QWidget" name="tab_3">
+           <attribute name="title">
+            <string>页</string>
+           </attribute>
           </widget>
          </widget>
         </item>
@@ -458,6 +525,42 @@
            <number>7</number>
           </property>
           <item>
+           <widget class="QLabel" name="labelIP_2">
+            <property name="minimumSize">
+             <size>
+              <width>30</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>高亮标记</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="highlightStart">
+            <property name="toolTip">
+             <string>开始位置,起始计数0</string>
+            </property>
+            <property name="maximum">
+             <number>300</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="highlightEnd">
+            <property name="toolTip">
+             <string>高亮个数</string>
+            </property>
+            <property name="maximum">
+             <number>300</number>
+            </property>
+            <property name="value">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="horizontalSpacer_2">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -469,6 +572,13 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="copyBtn">
+            <property name="text">
+             <string>复制</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="clearOutput">
@@ -501,50 +611,6 @@
         <property name="spacing">
          <number>5</number>
         </property>
-        <item row="2" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <property name="spacing">
-           <number>10</number>
-          </property>
-          <property name="rightMargin">
-           <number>7</number>
-          </property>
-          <item>
-           <spacer name="horizontalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="clearInput">
-            <property name="text">
-             <string>清除</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="sendInput">
-            <property name="text">
-             <string>发送</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="0" column="0">
-         <widget class="QTextEdit" name="inputEdit">
-          <property name="toolTip">
-           <string>消息输入</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="0">
          <layout class="QHBoxLayout" name="horizontalLayoutAddr">
           <property name="spacing">
@@ -597,6 +663,74 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item row="2" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <property name="spacing">
+           <number>10</number>
+          </property>
+          <property name="rightMargin">
+           <number>7</number>
+          </property>
+          <item>
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>发送格式</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="inputFormat">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;ByteArray:直接发送&lt;/p&gt;&lt;p&gt;FromHex:发送前,将输入转换到ByteArray,如输入(65)转换后为(A)&lt;/p&gt;&lt;p&gt;ToHex:与FromHex相反&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="clearInput">
+            <property name="text">
+             <string>清除</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="sendInput">
+            <property name="text">
+             <string>发送</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0">
+         <widget class="QTextEdit" name="inputEdit">
+          <property name="toolTip">
+           <string>消息输入</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

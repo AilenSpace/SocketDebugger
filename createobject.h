@@ -24,6 +24,8 @@ private slots:
 
     void on_comboBoxProto_currentIndexChanged(int index);
 
+    void on_comboBoxProto_currentTextChanged(const QString &arg1);
+
 private:
     Ui::CreateObject *ui;
 };

@@ -27,10 +27,11 @@ bool UdpSocket::start()
     return true;
 }
 
-bool UdpSocket::write(QByteArray by,QHostAddress ip,int port)
+bool UdpSocket::write(QByteArray by,IOFormat format,QHostAddress ip,int port)
 {
     if(open){
-        socket->writeDatagram(by,by.size(),ip,port);
+        QByteArray &&data=getFomateData(by,format);
+        socket->writeDatagram(data,data.size(),ip,port);
     }
     return true;
 }

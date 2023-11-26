@@ -1,10 +1,11 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 #include <QHostAddress>
-enum class ShowFormat{
+enum class IOFormat{
     MIN,
-    HEX,
-    STRING,
+    FROM_HEX,
+    TO_HEX,
+    BYTE_ARRAY,
     MAX
 };
 
@@ -61,7 +62,7 @@ public:
 class DebugSetting{
 public:
     ProtocolType protocolType;
-    ShowFormat showFormat;
+    IOFormat oFormat;
     HeadSetting head;
     QHostAddress ip;
     unsigned int port;
@@ -84,11 +85,13 @@ inline QString endianTypeToString(EndianType val){
     }
     return "";
 }
-inline QString showFormatToString(ShowFormat val){
-    if(ShowFormat::HEX==val){
-        return "hex";
-    }else if(ShowFormat::STRING==val){
-        return "string";
+inline QString IOFormatToString(IOFormat val){
+    if(IOFormat::TO_HEX==val){
+        return "to_hex";
+    }else if(IOFormat::FROM_HEX==val){
+        return "from_hex";
+    }else if(IOFormat::BYTE_ARRAY==val){
+        return "byte_array";
     }
     return "";
 }

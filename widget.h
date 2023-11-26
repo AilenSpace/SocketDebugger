@@ -42,6 +42,15 @@ private slots:
 
     void createDebug(DebugSetting set);
 
+    void on_copyBtn_clicked();
+
+    void setHighlight();
+    void updateValue(std::shared_ptr<DebugObject> obj);
+    void showError(QString error);
+    void on_highlightStart_valueChanged(int arg1);
+
+    void on_highlightEnd_valueChanged(int arg1);
+
 private:
     Ui::Widget *ui;
     DebuggerManager *manager;
