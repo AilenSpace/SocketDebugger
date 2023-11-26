@@ -31,12 +31,14 @@ void CreateObject::on_create_clicked()
     ValueSetting val;
     val.valueBitType=ValueBitType::INT8_T;
     val.endianType=EndianType::SMALL;
-    val.signedType=SignedType::Signed;
+    val.signedType=SignedType::Unsigned;
     val.valueOffset=0;
     DebugSetting setting;
-
+    setting.acquisitionMode=AcquisitionMode::Continuous;
     setting.oFormat=IOFormat::BYTE_ARRAY;
-
+    setting.readMode=ReadMode::ReadAll;
+    setting.head.packageSize=val;
+    setting.fixedSize=0;
     QVariant type=ui->comboBoxProto->itemData(ui->comboBoxProto->currentIndex(),Qt::UserRole);
     setting.protocolType=ProtocolType(type.toInt());
     if(setting.protocolType==ProtocolType::UDP_CLIENT){
@@ -48,8 +50,6 @@ void CreateObject::on_create_clicked()
     }
 
     HeadSetting head;
-    head.hasPacketHead=false;
-    head.fullPacketSize=true;//是否是包含 包头的大小
     head.packageSize=val;//形容包大小
 
     setting.head=head;

@@ -5,25 +5,32 @@
 UdpSocket::UdpSocket(DebugSetting setting,QObject *parent)
     : DebugObject{setting,parent}
 {
-
+    socket=new QUdpSocket(this);
+    connect(socket,&QUdpSocket::readyRead,this,&UdpSocket::onReadyRead,Qt::DirectConnection);
 }
 
 bool UdpSocket::start()
 {
     if(ProtocolType::UDP_SERVRE==setting.protocolType){
-        socket=new QUdpSocket(this);
         if(!socket->bind(setting.ip,setting.port)){
             qDebug()<<"绑定失败";
             return false;
         }
-        connect(socket,&QUdpSocket::readyRead,this,&UdpSocket::onReadyRead,Qt::DirectConnection);
+
     }else if(ProtocolType::UDP_CLIENT==setting.protocolType){
-        socket=new QUdpSocket(this);
+
     }else{
         qDebug()<<"error";
         return false;
     }
     open=true;
+    return true;
+}
+
+bool UdpSocket::stop()
+{
+    open=false;
+    socket->abort();
     return true;
 }
 
@@ -44,6 +51,11 @@ void UdpSocket::onReadyRead()
         socket->readDatagram(by.data(),by.size());
         qDebug()<<"onReadyRead"<<by;
         lastBy=by;
+        if(this->setting.acquisitionMode==AcquisitionMode::Single){
+            this->stop();
+            emit newData(id,getLastData());
+            return;
+        }
         emit newData(id,getLastData());
     }
 }

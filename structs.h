@@ -42,10 +42,16 @@ enum class EndianType{
     MAX
 };
 
-
+enum class ReadMode{
+    MIN,
+    ReadAll,
+    Fixed,
+    Head,
+    MAX
+};
 class ValueSetting{
 public:
-    unsigned int valueOffset;//值 位置的偏移量
+    unsigned int valueOffset;//值 位置的偏移量1开始计数
     ValueBitType  valueBitType;//值 的字节数量
     SignedType signedType;//值 是否是无符号
     EndianType endianType;//值 大小端存储
@@ -53,22 +59,47 @@ public:
 
 class HeadSetting{
 public:
-    bool hasPacketHead;//是否具有包头 对于tcp应当具有包头head+body方式否者会有粘贴包的问题
-    bool fullPacketSize;//是否是包含 包头的大小
     ValueSetting packageSize;//形容包大小
 };
-
+enum class AcquisitionMode{
+    MIN,
+    Continuous,
+    Single,
+    MAX
+};
 
 class DebugSetting{
 public:
     ProtocolType protocolType;
     IOFormat oFormat;
-    HeadSetting head;
     QHostAddress ip;
     unsigned int port;
     ValueSetting value;
+    AcquisitionMode acquisitionMode;
+    //用于粘包的协议
+    ReadMode readMode;
+    HeadSetting head;
+    int fixedSize;
 };
 
+inline QString readModeToString(ReadMode val){
+    if(ReadMode::Fixed==val){
+        return "Fixed";
+    }else if(ReadMode::Head==val){
+        return "Head";
+    }else if(ReadMode::ReadAll==val){
+        return "ReadAll";
+    }
+    return "";
+}
+inline QString acquisitionModeToString(AcquisitionMode val){
+    if(AcquisitionMode::Continuous==val){
+        return "Continuous";
+    }else if(AcquisitionMode::Single==val){
+        return "Single";
+    }
+    return "";
+}
 inline QString signedTypeToString(SignedType val){
     if(SignedType::Signed==val){
         return "Signed";

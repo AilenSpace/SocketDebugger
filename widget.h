@@ -51,6 +51,16 @@ private slots:
 
     void on_highlightEnd_valueChanged(int arg1);
 
+    void on_stopBtn_clicked();
+
+    void on_startBtn_clicked();
+
+    void on_acquisitionMode_currentIndexChanged(int index);
+
+    void on_updateHeadSet_clicked();
+
+    void onNewChildren(int parentId,int id,std::shared_ptr<DebugObject> children);
+
 private:
     Ui::Widget *ui;
     DebuggerManager *manager;

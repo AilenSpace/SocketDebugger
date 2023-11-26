@@ -1,26 +1,26 @@
-#ifndef TCPSOCKET_H
-#define TCPSOCKET_H
+#ifndef TCPSERVER_H
+#define TCPSERVER_H
 
 #include <QObject>
 #include "debugobject.h"
 #include <QMap>
 #include <QTcpServer>
 #include <QTcpSocket>
-class TcpSocket : public DebugObject
+#include <memory>
+class TcpServer : public DebugObject
 {
     Q_OBJECT
 public:
-    explicit TcpSocket(DebugSetting setting,bool local,QObject *parent = nullptr);
+    explicit TcpServer(DebugSetting setting,QObject *parent = nullptr);
     virtual bool start() final;
     virtual bool stop() final;
     virtual bool write(QByteArray by,IOFormat format,QHostAddress ip,int port) final;
-    void init(QTcpSocket*socket);
+
 signals:
 private:
-    void onReadyRead();
+    void onNewConnection();
 private:
-    QTcpSocket*client;
-    bool isLocal;
+    QTcpServer*server;
 };
 
-#endif // TCPSOCKET_H
+#endif // TCPSERVER_H

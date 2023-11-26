@@ -25,6 +25,8 @@ set(PROJECT_SOURCES
         object/debugobject.cpp
         object/tcpsocket.h
         object/tcpsocket.cpp
+        object/tcpserver.h
+        object/tcpserver.cpp
         object/udpsocket.h
         object/udpsocket.cpp
         basictreewidget.h

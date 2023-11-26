@@ -17,7 +17,7 @@ public:
     void removeDebugObject(int id);
 signals:
     int newData(int id,QByteArray by);
-
+    void newChildren(int parentId,int id,std::shared_ptr<DebugObject> children);
 private:
     int id;
     QMap<int,std::shared_ptr<DebugObject>> datas;

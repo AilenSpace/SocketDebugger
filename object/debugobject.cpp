@@ -13,6 +13,7 @@ DebugObject::DebugObject(DebugSetting setting,QObject *parent)
 DebugObject::~DebugObject()
 {
     qDebug()<<"~DebugObject id:"<<id;
+    childrens.clear();
 }
 
 DebugSetting DebugObject::getDebugSetting()
@@ -35,6 +36,16 @@ void DebugObject::setHeadSetting(HeadSetting setting)
     this->setting.head=setting;
 }
 
+void DebugObject::setReadMode(ReadMode setting)
+{
+    this->setting.readMode=setting;
+}
+
+void DebugObject::setFixedReadSize(int setting)
+{
+    this->setting.fixedSize=setting;
+}
+
 void DebugObject::setValue(ValueSetting setting)
 {
     this->setting.value=setting;
@@ -43,6 +54,11 @@ void DebugObject::setValue(ValueSetting setting)
 void DebugObject::setOutputFormat(IOFormat setting)
 {
     this->setting.oFormat=setting;
+}
+
+void DebugObject::setAcquisitionMode(AcquisitionMode setting)
+{
+    this->setting.acquisitionMode=setting;
 }
 
 bool DebugObject::isOpen()
@@ -129,6 +145,20 @@ QByteArray DebugObject::getFomateData(const QByteArray &data, IOFormat format, c
 QByteArray DebugObject::getLastData()
 {
     return getFomateData(lastBy,setting.oFormat,' ');
+}
+
+void DebugObject::addChildren(int id, std::shared_ptr<DebugObject> children)
+{
+    childrens.insert(id,children);
+}
+
+void DebugObject::updateChildrenId(int oldId, int newId)
+{
+    if(childrens.contains(oldId)){
+        std::shared_ptr<DebugObject> tmp=childrens[oldId];
+        childrens.remove(oldId);
+        childrens.insert(newId,tmp);
+    }
 }
 
 bool DebugObject::start()

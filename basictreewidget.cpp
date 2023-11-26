@@ -15,8 +15,8 @@ void BasicTreeWidget::clear(QTreeWidgetItem *item)
         }
 
     }else{
-       emit deleteItemed(item->data(0,Qt::DisplayRole+1));
-       delete item;
+        emit deleteItemed(item->data(0,Qt::DisplayRole+1));
+        delete item;
     }
 }
 
@@ -27,4 +27,24 @@ void BasicTreeWidget::appendItem(QTreeWidgetItem *parent, QList<QTreeWidgetItem 
     }else{
         parent->addChildren(items);
     }
+}
+
+QTreeWidgetItem *BasicTreeWidget::findId(int id)
+{
+    std::function<QTreeWidgetItem*(QTreeWidgetItem *,int)> tmpFind=[&](QTreeWidgetItem *item,int id)->QTreeWidgetItem*{
+        if(item->data(0,Qt::DisplayRole+1).toInt()==id){
+            return item;
+        }
+        for(int i=item->childCount()-1;i>=0;i--){
+            QTreeWidgetItem * item=tmpFind(item->child(i),id);
+            if(item)return item;
+        }
+        return nullptr;
+    };
+    int count=this->topLevelItemCount();
+    for(int i=count-1;i>=0;i--){
+        QTreeWidgetItem *item=tmpFind(this->topLevelItem(i),id);
+        if(item)return item;
+    }
+    return nullptr;
 }

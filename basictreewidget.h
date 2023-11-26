@@ -12,6 +12,7 @@ public:
     explicit BasicTreeWidget(QWidget *parent = nullptr);
     void clear(QTreeWidgetItem *item);
     void appendItem(QTreeWidgetItem *parent,QList<QTreeWidgetItem*> items);
+    QTreeWidgetItem *findId(int id);
 signals:
     void deleteItemed(QVariant var);
 
