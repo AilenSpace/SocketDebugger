@@ -8,6 +8,8 @@ DebugObject::DebugObject(DebugSetting setting,QObject *parent)
     open=false;
     id=0;
     lastBy="";
+    sendFrameId=0;
+    recvFrameId=0;
 }
 
 DebugObject::~DebugObject()
@@ -16,9 +18,14 @@ DebugObject::~DebugObject()
     childrens.clear();
 }
 
-DebugSetting DebugObject::getDebugSetting()
+DebugSetting DebugObject::getSetting()
 {
     return setting;
+}
+
+AdvSetting DebugObject::getAdvSetting()
+{
+    return setting.advSetting;
 }
 
 void DebugObject::setId(int id)
@@ -31,19 +38,29 @@ int DebugObject::getId()
     return id;
 }
 
-void DebugObject::setHeadSetting(HeadSetting setting)
+QList<DebugObject::DataT> DebugObject::getRecvRecords()
 {
-    this->setting.head=setting;
+    return recvRecords;
+}
+
+QList<DebugObject::DataT> DebugObject::getSendRecords()
+{
+    return sendRecords;
+}
+
+void DebugObject::setAdvSetting(AdvSetting setting)
+{
+    this->setting.advSetting=setting;
 }
 
 void DebugObject::setReadMode(ReadMode setting)
 {
-    this->setting.readMode=setting;
+    this->setting.advSetting.readMode=setting;
 }
 
 void DebugObject::setFixedReadSize(int setting)
 {
-    this->setting.fixedSize=setting;
+    this->setting.advSetting.fixedSize=setting;
 }
 
 void DebugObject::setValue(ValueSetting setting)
@@ -71,7 +88,6 @@ bool DebugObject::getValue(ValueSetting val, QString &ret)
     ret="查询失败";
     int offset=val.valueOffset-1;
     if(offset<0)return false;
-
     if(ValueBitType::INT8_T==val.valueBitType){
         if(offset+1>lastBy.size()){
             return false;
@@ -118,6 +134,15 @@ bool DebugObject::getValue(QString &ret)
     return getValue(this->setting.value,ret);
 }
 
+void DebugObject::clear()
+{
+    lastBy="";
+    recvFrameId=0;
+    recvRecords.clear();
+    sendFrameId=0;
+    sendRecords.clear();
+}
+
 QByteArray DebugObject::getFomateData(const QByteArray &data, IOFormat format)
 {
     if(format==IOFormat::TO_HEX){
@@ -161,7 +186,27 @@ void DebugObject::updateChildrenId(int oldId, int newId)
     }
 }
 
+void DebugObject::emitNewData(QByteArray by)
+{
+    lastBy=by;
+    DataT data;
+    data.by=by;
+    data.frameId=recvFrameId++;
+    recvRecords.append(data);
+    emit newData(id,getFomateData(lastBy,setting.oFormat,' '));
+}
+
+bool DebugObject::wirteData(const QByteArray &by, IOFormat format, QHostAddress ip, int port)
+{
+    DataT data;
+    data.by=by;
+    data.frameId=sendFrameId++;
+    sendRecords.append(data);
+    return this->write(by,format,ip,port);
+}
+
 bool DebugObject::start()
 {
+
     return false;
 }

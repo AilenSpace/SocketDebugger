@@ -36,8 +36,8 @@ QTreeWidgetItem *BasicTreeWidget::findId(int id)
             return item;
         }
         for(int i=item->childCount()-1;i>=0;i--){
-            QTreeWidgetItem * item=tmpFind(item->child(i),id);
-            if(item)return item;
+            QTreeWidgetItem * tmpItem=tmpFind(item->child(i),id);
+            if(tmpItem)return tmpItem;
         }
         return nullptr;
     };

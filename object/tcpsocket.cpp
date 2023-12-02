@@ -16,14 +16,23 @@ bool TcpSocket::start()
     if(!isLocal){
         return false;
     }
-    if(ProtocolType::TCP_CLIENT==setting.protocolType){
-//        if(!client->bind()){
-//            qDebug()<<"绑定失败";
-//            return false;
-//        }
-        client->connectToHost(setting.ip,setting.port);
+    ProtocolType type=setting.setting->protocolType;
+    if(ProtocolType::TCP_CLIENT==type){
+        std::shared_ptr<TcpSetting> tcpSetting= std::dynamic_pointer_cast<TcpSetting>(setting.setting);
+
+        if(tcpSetting->srcIp.toString()!=""&&tcpSetting->srcPort>0){
+            if(!client->bind(tcpSetting->srcIp,tcpSetting->srcPort)){
+                qDebug()<<"绑定失败";
+                emit showError("绑定失败",true);
+                return false;
+            }
+        }
+
+        client->connectToHost(tcpSetting->destIp,tcpSetting->destPort);
+
         if(!client->waitForConnected()){
             qDebug()<<"链接失败";
+            emit showError("链接失败",true);
             return false;
         }
     }else{
@@ -60,23 +69,25 @@ void TcpSocket::onReadyRead()
     QByteArray by;
     bool first=true;
     int packageSize=0;
+    QByteArray tmpBy;
     while(client->bytesAvailable()>0){
-        if(this->setting.readMode==ReadMode::ReadAll){
-            lastBy=client->readAll();
-            emit newData(id,getLastData());
-        }else if(this->setting.readMode==ReadMode::Fixed){
-            by+=client->read(this->setting.fixedSize-by.size());
-            if(by.size()==this->setting.fixedSize){
-                lastBy=by;
+        ReadMode mode=this->setting.advSetting.readMode;
+        if(mode==ReadMode::ReadAll){
+            tmpBy=client->readAll();
+            emitNewData(tmpBy);
+        }else if(mode==ReadMode::Fixed){
+            by+=client->read(this->setting.advSetting.fixedSize-by.size());
+            if(by.size()==this->setting.advSetting.fixedSize){
+                tmpBy=by;
                 by="";
-                emit newData(id,getLastData());
+                emitNewData(tmpBy);
             }
-        }else if(this->setting.readMode==ReadMode::Head){
+        }else if(mode==ReadMode::Head){
             if(first){
-                by+=client->read(this->setting.head.packageSize.valueOffset-by.size());
-                if(by.size()==this->setting.head.packageSize.valueOffset){
+                by+=client->read(this->setting.advSetting.packageSize.valueOffset-by.size());
+                if(by.size()==this->setting.advSetting.packageSize.valueOffset){
                     QString ret;
-                    if(this->getValue(this->setting.head.packageSize,ret)){
+                    if(this->getValue(this->setting.advSetting.packageSize,ret)){
                         packageSize=ret.toInt();
                         first=false;
                     }
@@ -88,9 +99,9 @@ void TcpSocket::onReadyRead()
                 }
                 by+=client->read(packageSize-by.size());
                 if(by.size()==packageSize){
-                    lastBy=by;
+                    tmpBy=by;
                     by="";
-                    emit newData(id,getLastData());
+                    emitNewData(tmpBy);
                     first=true;
                 }
 

@@ -18,6 +18,7 @@ public:
 signals:
     int newData(int id,QByteArray by);
     void newChildren(int parentId,int id,std::shared_ptr<DebugObject> children);
+    void showError(QString error,bool pop);
 private:
     int id;
     QMap<int,std::shared_ptr<DebugObject>> datas;

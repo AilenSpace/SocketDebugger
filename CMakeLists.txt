@@ -14,27 +14,18 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
 
 set(PROJECT_SOURCES
         main.cpp
-        widget.cpp
-        widget.h
-        widget.ui
-        object/debuggermanager.h
-        object/debuggermanager.cpp
-        object/funchelper.h
-        object/funchelper.cpp
-        object/debugobject.h
-        object/debugobject.cpp
-        object/tcpsocket.h
-        object/tcpsocket.cpp
-        object/tcpserver.h
-        object/tcpserver.cpp
-        object/udpsocket.h
-        object/udpsocket.cpp
-        basictreewidget.h
-        basictreewidget.cpp
-        createobject.h
-        createobject.cpp
-        createobject.ui
         structs.h
+        widget.h widget.cpp widget.ui
+        object/debuggermanager.h object/debuggermanager.cpp
+        object/funchelper.h object/funchelper.cpp
+        object/debugobject.h object/debugobject.cpp
+        object/tcpsocket.h object/tcpsocket.cpp
+        object/tcpserver.h object/tcpserver.cpp
+        object/udpsocket.h object/udpsocket.cpp
+        basictreewidget.h basictreewidget.cpp
+        createobject.h createobject.cpp createobject.ui
+        debugerwidget.h debugerwidget.cpp debugerwidget.ui
+        recordwidget.h recordwidget.cpp recordwidget.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

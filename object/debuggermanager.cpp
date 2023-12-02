@@ -21,12 +21,13 @@ int DebuggerManager::createDebug(DebugSetting set)
     std::unique_lock lock(mu);
     std::shared_ptr<DebugObject> obj=nullptr;
     bool autoStart=false;
-    if(set.protocolType==ProtocolType::UDP_CLIENT||set.protocolType==ProtocolType::UDP_SERVRE){
+    ProtocolType type=set.setting->protocolType;
+    if(type==ProtocolType::UDP_CLIENT||type==ProtocolType::UDP_SERVRE){
         obj.reset(new UdpSocket(set));
         autoStart=true;
-    }else if(set.protocolType==ProtocolType::TCP_CLIENT){
+    }else if(type==ProtocolType::TCP_CLIENT){
         obj.reset(new TcpSocket(set,true));
-    }else if(set.protocolType==ProtocolType::TCP_SERVRE){
+    }else if(type==ProtocolType::TCP_SERVRE){
         obj.reset(new TcpServer(set));
         autoStart=true;
         connect(obj.get(),&DebugObject::newChildren,this,[this](int oid,std::shared_ptr<DebugObject> children){
@@ -52,6 +53,7 @@ int DebuggerManager::createDebug(DebugSetting set)
     }
     obj->setId(id);
     connect(obj.get(),&DebugObject::newData,this,&DebuggerManager::newData);
+    connect(obj.get(),&DebugObject::showError,this,&DebuggerManager::showError);
     datas.insert(id,obj);
     id++;
     if(autoStart)obj->start();

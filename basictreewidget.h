@@ -5,6 +5,7 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <memory>
+
 class BasicTreeWidget : public QTreeWidget
 {
     Q_OBJECT

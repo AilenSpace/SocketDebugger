@@ -11,15 +11,21 @@ UdpSocket::UdpSocket(DebugSetting setting,QObject *parent)
 
 bool UdpSocket::start()
 {
-    if(ProtocolType::UDP_SERVRE==setting.protocolType){
-        if(!socket->bind(setting.ip,setting.port)){
-            qDebug()<<"绑定失败";
-            return false;
+    ProtocolType type=setting.setting->protocolType;
+    if(ProtocolType::UDP_SERVRE==type||ProtocolType::UDP_CLIENT==type)
+    {
+        std::shared_ptr<UdpSetting> udpSetting= std::dynamic_pointer_cast<UdpSetting>(setting.setting);
+        if(udpSetting->srcIp.toString()!=""&&udpSetting->srcPort>0){
+            if(!socket->bind(udpSetting->srcIp,udpSetting->srcPort)){
+                qDebug()<<"绑定失败";
+                 emit showError("绑定失败",true);
+                return false;
+            }
         }
+    }
 
-    }else if(ProtocolType::UDP_CLIENT==setting.protocolType){
 
-    }else{
+    else{
         qDebug()<<"error";
         return false;
     }
@@ -45,17 +51,18 @@ bool UdpSocket::write(QByteArray by,IOFormat format,QHostAddress ip,int port)
 void UdpSocket::onReadyRead()
 {
     if(!isOpen())return;
+    QByteArray tmpBy;
     while(socket->hasPendingDatagrams()){
         QByteArray by;
         by.resize(socket->pendingDatagramSize());
         socket->readDatagram(by.data(),by.size());
         qDebug()<<"onReadyRead"<<by;
-        lastBy=by;
+        tmpBy=by;
         if(this->setting.acquisitionMode==AcquisitionMode::Single){
             this->stop();
-            emit newData(id,getLastData());
+            emitNewData(tmpBy);
             return;
         }
-        emit newData(id,getLastData());
+        emitNewData(tmpBy);
     }
 }

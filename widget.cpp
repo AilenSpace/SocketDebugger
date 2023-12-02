@@ -5,7 +5,7 @@
 #include<QClipboard>
 #include<QMessageBox>
 #include "createobject.h"
-
+#include "debugerwidget.h"
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget)
@@ -18,14 +18,13 @@ Widget::Widget(QWidget *parent)
 
 void Widget::initCtl()
 {
-    resize(1280,800);
+    resize(1400,1000);
     QList<int> sizes;
     sizes<<2500<<7500;
-    ui->splitterH->setSizes(sizes);
+    ui->splitter->setSizes(sizes);
     sizes.clear();
-    sizes<<4000<<4000<<2000;
-    ui->splitterV->setSizes(sizes);
-
+    sizes<<900<<100;
+    ui->splitter_2->setSizes(sizes);
     ui->treeWidget->setColumnCount(1);
     connect(ui->treeWidget,&BasicTreeWidget::deleteItemed,this,[this](QVariant var){
         if(manager)
@@ -56,77 +55,43 @@ void Widget::initData()
 {
     manager=new DebuggerManager;
     connect(manager,&DebuggerManager::newChildren,this,&Widget::onNewChildren);
-
-    ui->inputEdit->setText("");
-    ui->outputLab->setText("");
-    for(int i=(int)ProtocolType::MIN;i<(int)ProtocolType::MAX;i++){
-        ui->comboBoxProto->addItem(protocolTypeToString(ProtocolType(i)),i);
-    }
-    for(int i=(int)AcquisitionMode::MIN+1;i<(int)AcquisitionMode::MAX;i++){
-        ui->acquisitionMode->addItem(acquisitionModeToString(AcquisitionMode(i)),i);
-    }
-
-    for(int i=(int)IOFormat::MIN;i<(int)IOFormat::MAX;i++){
-        ui->comboBoxOutFormat->addItem(IOFormatToString(IOFormat(i)),i);
-    }
-    for(int i=(int)IOFormat::MIN+1;i<(int)IOFormat::MAX;i++){
-        ui->inputFormat->addItem(IOFormatToString(IOFormat(i)),i);
-    }
-    ui->inputFormat->setCurrentText(IOFormatToString(IOFormat::BYTE_ARRAY));
-
-
-    for(int i=(int)ReadMode::MIN+1;i<(int)ReadMode::MAX;i++){
-        ui->readMode->addItem(readModeToString(ReadMode(i)),i);
-    }
-
-    for(int i=(int)ValueBitType::MIN;i<(int)ValueBitType::MAX;i++){
-        ui->bitType->addItem(valueBitTypeToString(ValueBitType(i)),i);
-        ui->bitType_2->addItem(valueBitTypeToString(ValueBitType(i)),i);
-    }
-    for(int i=(int)EndianType::MIN;i<(int)EndianType::MAX;i++){
-        ui->comboBoxEndian->addItem(endianTypeToString(EndianType(i)),i);
-        ui->comboBoxEndian_2->addItem(endianTypeToString(EndianType(i)),i);
-    }
-    for(int i=(int)SignedType::MIN;i<(int)SignedType::MAX;i++){
-        ui->signedType->addItem(signedTypeToString(SignedType(i)),i);
-        ui->signedType_2->addItem(signedTypeToString(SignedType(i)),i);
-    }
-
-
-    ui->sendIP->setText("127.0.0.1");
-    ui->sendPort->setText("9060");
-    ui->currentLable->setText("当前:-1");
-    currentId=0;
-    ui->startBtn->setEnabled(false);
-    ui->stopBtn->setEnabled(false);
-
-
-
-
-
+    connect(manager,&DebuggerManager::newData,this,&Widget::newData);
+    connect(manager,&DebuggerManager::showError,this,&Widget::showError);
     ValueSetting val;
     val.valueBitType=ValueBitType::INT8_T;
     val.endianType=EndianType::SMALL;
     val.signedType=SignedType::Unsigned;
-    val.valueOffset=1;
+    val.valueOffset=0;
+
+
+    AdvSetting adv;
+    adv.readMode=ReadMode::ReadAll;
+    adv.packageSize=val;
+    adv.fixedSize=0;
+    adv.packageSize=val;
+
+    std::shared_ptr<BasicSetting>  set;
+    std::shared_ptr<UdpSetting> udp=std::make_shared<UdpSetting>();
+    udp->srcIp=QHostAddress("127.0.0.1");
+    udp->srcPort=9060;
+    set=udp;
+    set->protocolType=ProtocolType::UDP_SERVRE;;
     DebugSetting setting;
-    setting.fixedSize=0;
-    setting.ip=QHostAddress("127.0.0.1");
-    setting.port=9060;
-    setting.oFormat=IOFormat::BYTE_ARRAY;
-    setting.acquisitionMode=AcquisitionMode::Continuous;
-    HeadSetting head;
-    head.packageSize=val;//形容包大小
-    setting.readMode=ReadMode::ReadAll;
-    setting.head.packageSize=val;
-
-    setting.head=head;
+    setting.oFormat=IOFormat::TO_HEX;
+    setting.advSetting=adv;
     setting.value=val;
+    setting.setting=set;
 
-    setting.protocolType=ProtocolType::TCP_SERVRE;
     this->createDebug(setting);
-    setting.protocolType=ProtocolType::TCP_CLIENT;
+
+    udp=std::make_shared<UdpSetting>();
+    set=udp;
+    set->protocolType=ProtocolType::UDP_CLIENT;;
+    udp->srcIp=QHostAddress("127.0.0.1");
+    udp->srcPort=9061;
+    setting.setting=set;
     this->createDebug(setting);
+
 }
 
 Widget::~Widget()
@@ -160,6 +125,28 @@ void Widget::on_createObject_clicked()
 void Widget::on_deleteObject_clicked()
 {
     if(ui->treeWidget->currentIndex().row()>=0){
+
+        QVariant var=ui->treeWidget->currentItem()->data(0,Qt::DisplayRole+1);
+        int id=var.toInt();
+        int index=-1;
+        DebugerWidget *debugerWidget=nullptr;
+        for(int i=0;i<ui->tabWidget->count();i++){
+            QWidget *wid= ui->tabWidget->widget(i);
+
+            DebugerWidget *tmp=qobject_cast<DebugerWidget*>(wid);
+            if(tmp){
+                if(tmp->getId()==id&&id>0){
+                    debugerWidget=tmp;
+                    index=i;
+                    break;
+                }
+            }
+        }
+        if(index>=0){
+            ui->tabWidget->removeTab(index);
+            if(debugerWidget)
+                delete debugerWidget;
+        }
         ui->treeWidget->clear(ui->treeWidget->currentItem());
     }else{
         showError("未选择删除节点");
@@ -169,157 +156,39 @@ void Widget::on_deleteObject_clicked()
 void Widget::newData(int id, QByteArray by)
 {
     QVariant var=ui->treeWidget->currentItem()->data(0,Qt::DisplayRole+1);
-    if(id!=var.toInt())return;
-    ui->outputLab->setText(by);
-
-    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
-    if(obj){
-        updateValue(obj);
-    }else{
-
-    }
 }
-
-void Widget::updateUI(std::shared_ptr<DebugObject> obj)
-{
-    DebugSetting set=  obj->getDebugSetting();
-    ui->currentLable->setText("当前:"+protocolTypeToString(set.protocolType)+QString::number(obj->getId()));
-    //tab1
-    ui->lineEditProtoIP->setText(set.ip.toString());
-    ui->lineEditProtoPort->setText(QString::number(set.port));
-    ui->acquisitionMode->setCurrentText(acquisitionModeToString(set.acquisitionMode));
-    ui->comboBoxProto->setCurrentText(protocolTypeToString(set.protocolType));
-    if(set.protocolType==ProtocolType::UDP_CLIENT){
-        ui->sendIP->setVisible(true);
-        ui->sendPort->setVisible(true);
-        ui->labelIP->setVisible(true);
-        ui->labelPort->setVisible(true);
-    }else{
-        ui->sendIP->setVisible(false);
-        ui->sendPort->setVisible(false);
-        ui->labelIP->setVisible(false);
-        ui->labelPort->setVisible(false);
-    }
-    //tab2
-    ui->comboBoxOutFormat->setCurrentText(IOFormatToString(set.oFormat));
-
-    //tab3
-    ui->bitType->setCurrentText(valueBitTypeToString(set.value.valueBitType));
-    ui->comboBoxEndian->setCurrentText(endianTypeToString(set.value.endianType));
-    ui->signedType->setCurrentText(signedTypeToString(set.value.signedType));
-    ui->lineEditOffset->setText(QString::number(set.value.valueOffset));
-    updateValue(obj);
-
-    //tab4
-    ui->bitType_2->setCurrentText(valueBitTypeToString(set.head.packageSize.valueBitType));
-    ui->comboBoxEndian_2->setCurrentText(endianTypeToString(set.head.packageSize.endianType));
-    ui->signedType_2->setCurrentText(signedTypeToString(set.head.packageSize.signedType));
-    ui->lineEditOffset_2->setText(QString::number(set.head.packageSize.valueOffset));
-    ui->fixedSize->setText(QString::number(set.fixedSize));
-    ui->readMode->setCurrentText(readModeToString(set.readMode));
-
-    QByteArray &&by=obj->getLastData();
-    ui->outputLab->setText(by);
-    setHighlight();
-    ui->startBtn->setEnabled(!obj->isOpen());
-    ui->stopBtn->setEnabled(obj->isOpen());
-}
-
 
 void Widget::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column)
 {
     QVariant var=item->data(0,Qt::DisplayRole+1);
-    currentId=var.toInt();
-    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
-    if(obj){
-        updateUI(obj);
-    }
-    qDebug()<<"currentId:"<<currentId;
-}
+    int id=var.toInt();
+    int index=-1;
+    for(int i=0;i<ui->tabWidget->count();i++){
+        QWidget *wid= ui->tabWidget->widget(i);
 
-
-void Widget::on_sendInput_clicked()
-{
-    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
-    if(obj){
-        QVariant var;
-        var= ui->inputFormat->currentData(Qt::UserRole);
-
-        obj->write(ui->inputEdit->toPlainText().toUtf8(),IOFormat(var.toInt()), QHostAddress(ui->sendIP->text()),
-                   ui->sendPort->text().toInt());
-        ui->inputFormat->clear();
-    }else{
-        showError("发送失败 ");
-    }
-}
-
-
-void Widget::on_clearInput_clicked()
-{
-    ui->inputEdit->setText("");
-}
-
-
-void Widget::on_clearOutput_clicked()
-{
-    ui->outputLab->setText("");
-}
-
-
-void Widget::on_query_clicked()
-{
-    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
-    if(obj){
-        updateValue(obj);
-    }else{
-        qDebug()<<"查询失败";
-    }
-
-}
-
-
-void Widget::on_setValSetting_clicked()
-{
-    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
-    if(obj){
-        ValueSetting val;
-        QVariant var;
-        var= ui->bitType->currentData(Qt::UserRole);
-        val.valueBitType=ValueBitType(var.toInt());
-
-        var= ui->comboBoxEndian->currentData(Qt::UserRole);
-        val.endianType=EndianType(var.toInt());
-
-        var= ui->signedType->currentData(Qt::UserRole);
-        val.signedType=SignedType(var.toInt());
-
-        if(ui->lineEditOffset->text()==""){
-            val.valueOffset=0;
-        }else{
-            val.valueOffset=ui->lineEditOffset->text().toInt();
+        DebugerWidget *debugerWidget=qobject_cast<DebugerWidget*>(wid);
+        if(debugerWidget){
+            if(debugerWidget->getId()==id&&id>0){
+                index=i;
+                break;
+            }
         }
-        obj->setValue(val);
-        updateUI(obj);
+    }
+    if(index>=0){
+        ui->tabWidget->setCurrentIndex(index);
     }else{
-        showError("应用失败");
+        std::shared_ptr<DebugObject> obj=manager->getDebugObject(id);
+        if(obj){
+            DebugerWidget *debugerWidget=new DebugerWidget(ui->tabWidget);
+            connect(debugerWidget,&DebugerWidget::showError,this,&Widget::showError);
+            debugerWidget->setDebugObject(obj);
+            ui->tabWidget->addTab(debugerWidget,protocolTypeToString(obj->getSetting().setting->protocolType)+QString::number(id));
+            ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
+
+        }
+
     }
 
-}
-
-
-void Widget::on_updateOutpt_clicked()
-{
-    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
-    if(obj){
-        QVariant var;
-        var= ui->comboBoxOutFormat->currentData(Qt::UserRole);
-
-        obj->setOutputFormat(IOFormat(var.toInt()));
-        updateUI(obj);
-
-    }else{
-        showError("应用失败");
-    }
 }
 
 void Widget::createDebug(DebugSetting set)
@@ -328,177 +197,26 @@ void Widget::createDebug(DebugSetting set)
     if((ret=manager->createDebug(set))>0){
         QList<QTreeWidgetItem*> items;
         QTreeWidgetItem*item=new QTreeWidgetItem;
-        item->setText(0,protocolTypeToString(set.protocolType)+QString::number(ret));
+        item->setText(0,protocolTypeToString(set.setting->protocolType)+QString::number(ret));
         item->setData(0,Qt::DisplayRole+1,ret);
+        qDebug()<<"createDebug:"<<ret;
         items<<item;
         ui->treeWidget->appendItem(nullptr,items);
     }else if(ret==-2){
-        showError("暂不支持该类型\n");
+        showError("暂不支持该类型\n",true);
     }else{
-        showError("创建失败");
+        showError("创建失败",true);
     }
 }
 
 
-void Widget::on_copyBtn_clicked()
+void Widget::showError(QString error,bool pop)
 {
-    QClipboard *clip = QApplication::clipboard();
-    clip->setText(ui->outputLab->toPlainText().replace(" ",""),QClipboard::Clipboard);
+    ui->logInfo->append(error+"\n");
+    if(pop)
+        QMessageBox::warning(nullptr,"错误",error);
 }
 
-void Widget::setHighlight()
-{
-    QString &&by=ui->outputLab->toPlainText();
-    ui->outputLab->setText(by);
-    QTextCursor cursor = ui->outputLab->textCursor();
-    int tmpStart=ui->highlightStart->value();
-    int tmpEnd=ui->highlightEnd->value();
-    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
-    if(obj){
-        if(obj->getDebugSetting().oFormat==IOFormat::TO_HEX){
-            tmpStart=3*tmpStart;
-            tmpEnd=3*tmpEnd;
-        }
-    }
-    tmpEnd=tmpStart+tmpEnd;
-    tmpStart=tmpStart>by.length()?by.length():tmpStart;
-    tmpEnd=tmpEnd>by.length()?by.length():tmpEnd;
-
-    cursor.setPosition(tmpStart);
-    cursor.setPosition(tmpEnd,QTextCursor::MoveMode::KeepAnchor);
-    QTextCharFormat fmt;
-    fmt.setForeground(QColor(Qt::red));
-    cursor.mergeCharFormat(fmt);    //设置文本格式
-    cursor.clearSelection(); //撤销选中
-    cursor.movePosition(QTextCursor::EndOfLine);  //cursor和anchor均移至末尾
-}
-template <class  T>
-T calcBitValue(T i,int index,int n)
-{
-    int leftShift=sizeof(T)*8-(index+n);
-    i<<=leftShift;
-    i>>=index+leftShift;
-    return i;
-};
-
-void Widget::updateValue(std::shared_ptr<DebugObject> obj)
-{
-    QString res="";
-    bool ret=obj->getValue(res);
-    if(!ret){
-        ui->bitValue->setText("查询失败");
-        ui->lineEditValue->setText("查询失败");
-        return;
-    }
-    ui->lineEditValue->setText(res);
-
-    int start=ui->bitStart->value();
-    int count=ui->bitCount->value();
-    ValueBitType type=obj->getDebugSetting().value.valueBitType;
-
-    if(type==ValueBitType::INT8_T){
-        uint8_t v= res.toInt();
-        ui->bitValue->setText(QString("%1").arg(calcBitValue(v,start,count)));
-    } else   if(type==ValueBitType::INT16_T){
-        uint16_t v= res.toInt();
-        ui->bitValue->setText(QString("%1").arg(calcBitValue(v,start,count)));
-    }else  if(type==ValueBitType::INT32_T){
-        uint32_t v= res.toInt();
-        ui->bitValue->setText(QString("%1").arg(calcBitValue(v,start,count)));
-    }else{
-        ui->bitValue->setText("不支持的类型查询");
-    }
-}
-
-void Widget::showError(QString error)
-{
-    QMessageBox::warning(nullptr,"错误",error);
-}
-
-
-void Widget::on_highlightStart_valueChanged(int arg1)
-{
-    setHighlight();
-}
-
-
-void Widget::on_highlightEnd_valueChanged(int arg1)
-{
-    setHighlight();
-}
-
-
-
-void Widget::on_stopBtn_clicked()
-{
-    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
-    if(obj){
-        if(obj->stop()){
-            ui->startBtn->setEnabled(!obj->isOpen());
-            ui->stopBtn->setEnabled(obj->isOpen());
-            return ;
-        }
-    }
-    showError("停止失败");
-
-}
-
-
-void Widget::on_startBtn_clicked()
-{
-    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
-    if(obj){
-        if(obj->start()){
-            ui->startBtn->setEnabled(!obj->isOpen());
-            ui->stopBtn->setEnabled(obj->isOpen());
-            return ;
-        }
-    }
-    showError("开始失败\n");
-}
-
-
-void Widget::on_acquisitionMode_currentIndexChanged(int index)
-{
-    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
-    if(obj){
-        QVariant var;
-        var= ui->acquisitionMode->currentData(Qt::UserRole);
-        obj->setAcquisitionMode(AcquisitionMode(var.toInt()));
-    }
-}
-
-
-void Widget::on_updateHeadSet_clicked()
-{
-    std::shared_ptr<DebugObject> obj=manager->getDebugObject(currentId);
-    if(obj){
-        ValueSetting val;
-        QVariant var;
-        var= ui->bitType_2->currentData(Qt::UserRole);
-        val.valueBitType=ValueBitType(var.toInt());
-
-        var= ui->comboBoxEndian_2->currentData(Qt::UserRole);
-        val.endianType=EndianType(var.toInt());
-
-        var= ui->signedType_2->currentData(Qt::UserRole);
-        val.signedType=SignedType(var.toInt());
-
-        if(ui->lineEditOffset_2->text()==""){
-            val.valueOffset=0;
-        }else{
-            val.valueOffset=ui->lineEditOffset_2->text().toInt();
-        }
-        HeadSetting head;
-        head.packageSize=val;
-        obj->setHeadSetting(head);
-        obj->setFixedReadSize(ui->fixedSize->text().toInt());
-        obj->setReadMode(ReadMode(ui->readMode->currentData(Qt::UserRole).toInt()));
-
-    }else{
-        showError("应用失败");
-    }
-}
 
 void Widget::onNewChildren(int parentId, int id, std::shared_ptr<DebugObject> children)
 {
@@ -506,10 +224,23 @@ void Widget::onNewChildren(int parentId, int id, std::shared_ptr<DebugObject> ch
 
     QList<QTreeWidgetItem*> items;
     QTreeWidgetItem*item=new QTreeWidgetItem(parentItem);
-    item->setText(0,protocolTypeToString(children->getDebugSetting().protocolType)+QString::number(children->getId()));
+    item->setText(0,protocolTypeToString(children->getSetting().setting->protocolType)+QString::number(children->getId()));
     item->setData(0,Qt::DisplayRole+1,children->getId());
     items<<item;
     qDebug()<<"onNewChildren"<<parentId<<id;
     ui->treeWidget->appendItem(parentItem,items);
+}
+
+
+void Widget::on_tabWidget_tabCloseRequested(int index)
+{
+    QWidget *wid= ui->tabWidget->widget(index);
+
+    DebugerWidget *tmp=qobject_cast<DebugerWidget*>(wid);
+
+    ui->tabWidget->removeTab(index);
+    if(tmp){
+        delete tmp;
+    }
 }
 

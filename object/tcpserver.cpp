@@ -11,9 +11,12 @@ TcpServer::TcpServer(DebugSetting setting,QObject *parent)
 
 bool TcpServer::start()
 {
-    if(ProtocolType::TCP_SERVRE==setting.protocolType){
-        if(!server->listen(setting.ip,setting.port)){
+    ProtocolType type=setting.setting->protocolType;
+    if(ProtocolType::TCP_SERVRE==type){
+        std::shared_ptr<TcpSetting> tcpSetting= std::dynamic_pointer_cast<TcpSetting>(setting.setting);
+        if(!server->listen(tcpSetting->srcIp,tcpSetting->srcPort)){
             qDebug()<<"监听失败";
+            emit showError("监听失败",true);
             return false;
         }
     }else{
@@ -46,7 +49,7 @@ void TcpServer::onNewConnection()
         std::shared_ptr<TcpSocket> tmp;
         tmp.reset(new TcpSocket(this->setting,false));
         tmp->init(socket);
-        addChildren(id+i,tmp);
-        emit newChildren(id+i,tmp);
+        addChildren(getId()+i,tmp);
+        emit newChildren(getId()+i,tmp);
     }
 }

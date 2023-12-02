@@ -3,6 +3,7 @@
 #include<QVector>
 #include<QIntValidator>
 #include<QPalette>
+#include <memory>
 CreateObject::CreateObject(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CreateObject)
@@ -18,12 +19,16 @@ CreateObject::~CreateObject()
 
 void CreateObject::initData()
 {
-    for(int i=(int)ProtocolType::MIN;i<(int)ProtocolType::MAX;i++){
+    for(int i=(int)ProtocolType::MIN+1;i<(int)ProtocolType::MAX;i++){
         ui->comboBoxProto->addItem(protocolTypeToString(ProtocolType(i)),i);
     }
-    ui->lineEditPort->setValidator(new QIntValidator);
-    ui->lineEditPort->setText("9060");
-    ui->lineEditIP->setText("127.0.0.1");
+    ui->srcPort->setValidator(new QIntValidator);
+    ui->srcPort->setText("9060");
+    ui->srcIP->setText("127.0.0.1");
+
+    ui->destPort->setValidator(new QIntValidator);
+    ui->destPort->setText("9061");
+    ui->destIP->setText("127.0.0.1");
 }
 
 void CreateObject::on_create_clicked()
@@ -33,27 +38,38 @@ void CreateObject::on_create_clicked()
     val.endianType=EndianType::SMALL;
     val.signedType=SignedType::Unsigned;
     val.valueOffset=0;
-    DebugSetting setting;
-    setting.acquisitionMode=AcquisitionMode::Continuous;
-    setting.oFormat=IOFormat::BYTE_ARRAY;
-    setting.readMode=ReadMode::ReadAll;
-    setting.head.packageSize=val;
-    setting.fixedSize=0;
+
+
+    AdvSetting adv;
+    adv.readMode=ReadMode::ReadAll;
+    adv.packageSize=val;
+    adv.fixedSize=0;
+    adv.packageSize=val;
+
+    std::shared_ptr<BasicSetting>  set;
+
+
     QVariant type=ui->comboBoxProto->itemData(ui->comboBoxProto->currentIndex(),Qt::UserRole);
-    setting.protocolType=ProtocolType(type.toInt());
-    if(setting.protocolType==ProtocolType::UDP_CLIENT){
-        setting.ip=QHostAddress("");
-        setting.port=0;
-    }else{
-        setting.ip=QHostAddress(ui->lineEditIP->text());
-        setting.port=ui->lineEditPort->text().toUInt();
+    ProtocolType protocolType=ProtocolType(type.toInt());
+    if(protocolType==ProtocolType::UDP_CLIENT||protocolType==ProtocolType::UDP_SERVRE){
+        std::shared_ptr<UdpSetting> udp=std::make_shared<UdpSetting>();
+        udp->srcIp=QHostAddress(ui->srcIP->text());
+        udp->srcPort=ui->srcPort->text().toInt();
+        set=udp;
+    }else if(protocolType==ProtocolType::TCP_CLIENT||protocolType==ProtocolType::TCP_SERVRE){
+        std::shared_ptr<TcpSetting> tcp=std::make_shared<TcpSetting>();
+        tcp->srcIp=QHostAddress(ui->srcIP->text());
+        tcp->srcPort=ui->srcPort->text().toInt();
+        tcp->destIp=QHostAddress(ui->destIP->text());
+        tcp->destPort=ui->destPort->text().toInt();
+        set=tcp;
     }
-
-    HeadSetting head;
-    head.packageSize=val;//形容包大小
-
-    setting.head=head;
+    set->protocolType=protocolType;
+    DebugSetting setting;
+    setting.oFormat=IOFormat::TO_HEX;
+    setting.advSetting=adv;
     setting.value=val;
+    setting.setting=set;
 
     emit createDebug(setting);
     this->close();
@@ -76,17 +92,19 @@ void CreateObject::on_comboBoxProto_currentTextChanged(const QString &arg1)
 {
     QVariant var=ui->comboBoxProto->currentData(Qt::UserRole);
     ProtocolType type=ProtocolType(var.toInt());
-    if(type==ProtocolType::UDP_CLIENT){
-        ui->label_2->setVisible(false);
-        ui->label->setVisible(false);
-        ui->lineEditIP->setVisible(false);
-        ui->lineEditPort->setVisible(false);
-    }else{
-        ui->label_2->setVisible(true);
-        ui->label->setVisible(true);
-        ui->lineEditIP->setVisible(true);
-        ui->lineEditPort->setVisible(true);
+    ui->destIP->setVisible(true);
+    ui->destIPLab->setVisible(true);
+    ui->destPort->setVisible(true);
+    ui->destPortLab->setVisible(true);
+    ui->srcIP->setVisible(true);
+    ui->srcIPLab->setVisible(true);
+    ui->srcPort->setVisible(true);
+    ui->srcPortLab->setVisible(true);
+    if(type==ProtocolType::UDP_CLIENT||type==ProtocolType::TCP_SERVRE||type==ProtocolType::UDP_SERVRE){
+        ui->destIP->setVisible(false);
+        ui->destIPLab->setVisible(false);
+        ui->destPort->setVisible(false);
+        ui->destPortLab->setVisible(false);
     }
-
 }
 

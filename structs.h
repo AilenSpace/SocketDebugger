@@ -56,11 +56,6 @@ public:
     SignedType signedType;//值 是否是无符号
     EndianType endianType;//值 大小端存储
 };
-
-class HeadSetting{
-public:
-    ValueSetting packageSize;//形容包大小
-};
 enum class AcquisitionMode{
     MIN,
     Continuous,
@@ -68,18 +63,44 @@ enum class AcquisitionMode{
     MAX
 };
 
+class AdvSetting{
+public:
+    ValueSetting packageSize;//包大小
+    ReadMode readMode;
+    int fixedSize;
+};
+
+class BasicSetting
+{
+public:
+     virtual ~BasicSetting(){}
+     ProtocolType protocolType;//协议
+};
+
+class TcpSetting:public BasicSetting
+{
+public:
+
+    QHostAddress destIp;
+    unsigned int destPort;
+    QHostAddress srcIp;
+    unsigned int srcPort;
+};
+class UdpSetting:public BasicSetting
+{
+public:
+    QHostAddress srcIp;
+    unsigned int srcPort;
+};
+
 class DebugSetting{
 public:
-    ProtocolType protocolType;
-    IOFormat oFormat;
-    QHostAddress ip;
-    unsigned int port;
-    ValueSetting value;
-    AcquisitionMode acquisitionMode;
-    //用于粘包的协议
-    ReadMode readMode;
-    HeadSetting head;
-    int fixedSize;
+    std::shared_ptr<BasicSetting> setting;
+    IOFormat oFormat;//输出格式
+    AcquisitionMode acquisitionMode;//采集模式
+    ValueSetting value; //实时值查询
+    //用于粘包的协议如tcp
+    AdvSetting advSetting;
 };
 
 inline QString readModeToString(ReadMode val){
