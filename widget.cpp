@@ -57,40 +57,40 @@ void Widget::initData()
     connect(manager,&DebuggerManager::newChildren,this,&Widget::onNewChildren);
     connect(manager,&DebuggerManager::newData,this,&Widget::newData);
     connect(manager,&DebuggerManager::showError,this,&Widget::showError);
-    ValueSetting val;
-    val.valueBitType=ValueBitType::INT8_T;
-    val.endianType=EndianType::SMALL;
-    val.signedType=SignedType::Unsigned;
-    val.valueOffset=0;
+//    ValueSetting val;
+//    val.valueBitType=ValueBitType::INT8_T;
+//    val.endianType=EndianType::SMALL;
+//    val.signedType=SignedType::Unsigned;
+//    val.valueOffset=0;
 
 
-    AdvSetting adv;
-    adv.readMode=ReadMode::ReadAll;
-    adv.packageSize=val;
-    adv.fixedSize=0;
-    adv.packageSize=val;
+//    AdvSetting adv;
+//    adv.readMode=ReadMode::ReadAll;
+//    adv.packageSize=val;
+//    adv.fixedSize=0;
+//    adv.packageSize=val;
 
-    std::shared_ptr<BasicSetting>  set;
-    std::shared_ptr<UdpSetting> udp=std::make_shared<UdpSetting>();
-    udp->srcIp=QHostAddress("127.0.0.1");
-    udp->srcPort=9060;
-    set=udp;
-    set->protocolType=ProtocolType::UDP_SERVRE;;
-    DebugSetting setting;
-    setting.oFormat=IOFormat::TO_HEX;
-    setting.advSetting=adv;
-    setting.value=val;
-    setting.setting=set;
+//    std::shared_ptr<BasicSetting>  set;
+//    std::shared_ptr<UdpSetting> udp=std::make_shared<UdpSetting>();
+//    udp->srcIp=QHostAddress("127.0.0.1");
+//    udp->srcPort=9060;
+//    set=udp;
+//    set->protocolType=ProtocolType::UDP_SERVRE;;
+//    DebugSetting setting;
+//    setting.oFormat=IOFormat::TO_HEX;
+//    setting.advSetting=adv;
+//    setting.value=val;
+//    setting.setting=set;
 
-    this->createDebug(setting);
+//    this->createDebug(setting);
 
-    udp=std::make_shared<UdpSetting>();
-    set=udp;
-    set->protocolType=ProtocolType::UDP_CLIENT;;
-    udp->srcIp=QHostAddress("127.0.0.1");
-    udp->srcPort=9061;
-    setting.setting=set;
-    this->createDebug(setting);
+//    udp=std::make_shared<UdpSetting>();
+//    set=udp;
+//    set->protocolType=ProtocolType::UDP_CLIENT;;
+//    udp->srcIp=QHostAddress("127.0.0.1");
+//    udp->srcPort=9061;
+//    setting.setting=set;
+//    this->createDebug(setting);
 
 }
 
