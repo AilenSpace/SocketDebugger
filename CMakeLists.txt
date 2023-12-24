@@ -9,23 +9,28 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network Xml)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network Xml)
 
 set(PROJECT_SOURCES
         main.cpp
         structs.h
-        widget.h widget.cpp widget.ui
+        mainwindow.h mainwindow.cpp mainwindow.ui
+        planwidget.h planwidget.cpp planwidget.ui
+        plandetailswidget.h plandetailswidget.cpp plandetailswidget.ui
+        debugwidget.h debugwidget.cpp debugwidget.ui
+        basictreewidget.h basictreewidget.cpp
+        createobject.h createobject.cpp createobject.ui
+        debugerwidget.h debugerwidget.cpp debugerwidget.ui
+        recordwidget.h recordwidget.cpp recordwidget.ui
+        createvaluequery.h createvaluequery.cpp createvaluequery.ui
         object/debuggermanager.h object/debuggermanager.cpp
         object/funchelper.h object/funchelper.cpp
         object/debugobject.h object/debugobject.cpp
         object/tcpsocket.h object/tcpsocket.cpp
         object/tcpserver.h object/tcpserver.cpp
         object/udpsocket.h object/udpsocket.cpp
-        basictreewidget.h basictreewidget.cpp
-        createobject.h createobject.cpp createobject.ui
-        debugerwidget.h debugerwidget.cpp debugerwidget.ui
-        recordwidget.h recordwidget.cpp recordwidget.ui
+        toolwidget.h toolwidget.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -51,7 +56,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(SocketDebugger PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network)
+target_link_libraries(SocketDebugger PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Xml)
 
 set_target_properties(SocketDebugger PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

@@ -29,14 +29,14 @@ enum class ValueBitType{
 };
 
 enum class SignedType{
-    MIN,
+    MIN=-1,
     Unsigned,
     Signed,
     MAX
 };
 
 enum class EndianType{
-    MIN,
+    MIN=-1,
     SMALL,
     BIG,
     MAX
@@ -51,16 +51,28 @@ enum class ReadMode{
 };
 class ValueSetting{
 public:
-    unsigned int valueOffset;//值 位置的偏移量1开始计数
-    ValueBitType  valueBitType;//值 的字节数量
-    SignedType signedType;//值 是否是无符号
-    EndianType endianType;//值 大小端存储
+    QString alias="";
+    double index=0;
+    unsigned int valueOffset=0;//值 位置的偏移量1开始计数
+    ValueBitType  valueBitType=ValueBitType::INT8_T;//值 的字节数量
+    SignedType signedType=SignedType::Unsigned;//值 是否是无符号
+    EndianType endianType=EndianType::SMALL;//值 大小端存储
+    int bitStart=0;
+    int bitLength=0;
+    QString value="none";
+    QString bitValue="none";
 };
 enum class AcquisitionMode{
     MIN,
     Continuous,
     Single,
     MAX
+};
+class Plan{
+public:
+    QString name;
+    int id;
+    QMap<double,ValueSetting> values;
 };
 
 class AdvSetting{
@@ -73,8 +85,8 @@ public:
 class BasicSetting
 {
 public:
-     virtual ~BasicSetting(){}
-     ProtocolType protocolType;//协议
+    virtual ~BasicSetting(){}
+    ProtocolType protocolType;//协议
 };
 
 class TcpSetting:public BasicSetting

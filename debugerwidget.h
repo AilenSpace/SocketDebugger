@@ -20,6 +20,7 @@ public:
     void setDebugObject(std::shared_ptr<DebugObject> obj);
 signals:
     void showError(QString error,bool pop=false);
+    void resizeSig();
 private:
     void initData();
     void updateUI(std::shared_ptr<DebugObject> obj);
@@ -29,7 +30,7 @@ private:
     void updateAdvSetting(const DebugSetting &set);
     void refreshHighlight();
     void updateValue(std::shared_ptr<DebugObject> obj);
-
+    void resizeEvent(QResizeEvent *event);
 private slots:
     void on_setValSetting_clicked();
 
@@ -67,10 +68,14 @@ private slots:
 
     void on_historySend_clicked();
 
+    void on_queryByPlan_clicked();
+
+    void on_updatePlan_clicked();
+
 private:
     Ui::DebugerWidget *ui;
     std::shared_ptr<DebugObject> object;
-
+    QMap<int,Plan>  plans;
 };
 
 #endif // DEBUGERWIDGET_H

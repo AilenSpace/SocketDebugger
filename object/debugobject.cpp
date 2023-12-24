@@ -129,6 +129,50 @@ bool DebugObject::getValue(ValueSetting val, QString &ret)
     return false;
 }
 
+template <class  T>
+T calcBitValue(T i,int index,int n)
+{
+    int leftShift=sizeof(T)*8-(index+n);
+    i<<=leftShift;
+    i>>=index+leftShift;
+    return i;
+};
+
+bool DebugObject::getValue(const ValueSetting &val, ValueSetting &ret)
+{
+    ret=val;
+    if(getValue(val, ret.value)){
+        QString res=ret.value;
+        int start=val.bitStart;
+        int count=val.bitLength;
+        ValueBitType type=val.valueBitType;
+
+        if(type==ValueBitType::INT8_T){
+            uint8_t v= res.toInt();
+            ret.bitValue=QString("%1").arg(calcBitValue(v,start,count));
+        } else   if(type==ValueBitType::INT16_T){
+            uint16_t v= res.toInt();
+            ret.bitValue=QString("%1").arg(calcBitValue(v,start,count));
+        }else  if(type==ValueBitType::INT32_T){
+            uint32_t v= res.toInt();
+            ret.bitValue=QString("%1").arg(calcBitValue(v,start,count));
+        }else{
+            ret.bitValue="不支持的类型查询";
+        }
+        return true;
+    }
+
+    return false;
+}
+
+void DebugObject::getValue(const Plan &val, Plan &ret)
+{
+    ret=val;
+    for(auto iter=val.values.begin();iter!=val.values.end();iter++){
+        getValue(iter.value(), ret.values[iter.key()]);
+    }
+}
+
 bool DebugObject::getValue(QString &ret)
 {
     return getValue(this->setting.value,ret);

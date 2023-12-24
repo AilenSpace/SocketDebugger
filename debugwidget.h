@@ -4,22 +4,21 @@
 #include <QWidget>
 #include "object/debuggermanager.h"
 #include <QTreeWidgetItem>
+#include <functional>
 QT_BEGIN_NAMESPACE
-namespace Ui { class Widget; }
+namespace Ui { class DebugWidget; }
 QT_END_NAMESPACE
 
-class Widget : public QWidget
+class DebugWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    Widget(QWidget *parent = nullptr);
+    DebugWidget(QWidget *parent = nullptr);
     void initCtl();
-    void initStyle();
     void initData();
 
-    ~Widget();
-
+    ~DebugWidget();
 private slots:
     void on_createObject_clicked();
 
@@ -36,9 +35,10 @@ private slots:
     void showError(QString error,bool pop=false);
 
     void on_tabWidget_tabCloseRequested(int index);
-
 private:
-    Ui::Widget *ui;
+    void actionAddValueQuery();
+private:
+    Ui::DebugWidget *ui;
     DebuggerManager *manager;
 };
 #endif // WIDGET_H

@@ -52,7 +52,7 @@
         <item row="0" column="0">
          <widget class="QTabWidget" name="tabWidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tab">
            <attribute name="title">
@@ -360,6 +360,23 @@
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="updatePlan">
+                <property name="text">
+                 <string>刷新方案</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="planCom"/>
+              </item>
+              <item>
+               <widget class="QPushButton" name="queryByPlan">
+                <property name="text">
+                 <string>根据方案查询</string>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QPushButton" name="setValSetting">
@@ -769,7 +786,7 @@
             <item>
              <widget class="QPushButton" name="historySend">
               <property name="text">
-               <string>发生历史</string>
+               <string>发送历史</string>
               </property>
              </widget>
             </item>

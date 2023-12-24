@@ -31,6 +31,8 @@ public:
     void setOutputFormat(IOFormat setting);
     void setAcquisitionMode(AcquisitionMode setting);
     bool getValue(ValueSetting val,QString& ret);
+    bool getValue(const ValueSetting &val,ValueSetting& ret);
+    void getValue(const Plan &val,Plan& ret);
     bool getValue(QString& ret);
 
     bool isOpen();

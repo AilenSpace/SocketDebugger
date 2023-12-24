@@ -241,6 +241,11 @@ void DebugerWidget::updateValue(std::shared_ptr<DebugObject> obj)
     }
 }
 
+void DebugerWidget::resizeEvent(QResizeEvent *event)
+{
+    emit resizeSig();
+}
+
 void DebugerWidget::on_setValSetting_clicked()
 {
     if(!object)
@@ -469,5 +474,45 @@ void DebugerWidget::on_historySend_clicked()
         return;
     }
     ui->records->setData(object->getSendRecords());
+}
+#include"planwidget.h"
+#include"plandetailswidget.h"
+void DebugerWidget::on_queryByPlan_clicked()
+{
+    if(!object)
+    {
+        emit showError("debuger object not setting");
+        return;
+    }
+    if( ui->planCom->currentText()!=""){
+        if(plans.contains(ui->planCom->currentText().toInt())){
+            Plan src,dest;
+            src=plans[ui->planCom->currentText().toInt()];
+            object->getValue(src,dest);
+            PlanDetailsWidget*wid= new PlanDetailsWidget(true,this);
+            wid->setPlan(dest);
+            wid->resize(this->size());
+            connect(wid,&PlanDetailsWidget::backsapce,this,[=](){
+                wid->hide();
+                wid->deleteLater();
+            });
+            connect(this,&DebugerWidget::resizeSig,this,[=](){
+                wid->resize(this->size());
+            });
+
+            wid->show();
+        }
+    }
+}
+
+void DebugerWidget::on_updatePlan_clicked()
+{
+    plans=PlanWidget::instance()->plans;
+    QStringList li;
+    for(auto iter=plans.begin();iter!=plans.end();iter++){
+        li<<QString::number(iter.key());
+    }
+    ui->planCom->clear();
+    ui->planCom->addItems(li);
 }
 

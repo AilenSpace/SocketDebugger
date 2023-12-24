@@ -6,8 +6,6 @@ DebuggerManager::DebuggerManager(QObject *parent)
     : QObject{parent}
 {
     id=1;
-    qRegisterMetaType<DebugSetting>("DebugSetting");
-    qRegisterMetaType<std::shared_ptr<DebugObject>>("std::shared_ptr<DebugObject>");
 
 }
 

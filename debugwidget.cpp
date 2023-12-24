@@ -1,22 +1,22 @@
-#include "widget.h"
-#include "./ui_widget.h"
+#include "debugwidget.h"
+#include "./ui_debugwidget.h"
 #include <QPushButton>
 #include<QLabel>
 #include<QClipboard>
 #include<QMessageBox>
+#include<QMenuBar>
 #include "createobject.h"
 #include "debugerwidget.h"
-Widget::Widget(QWidget *parent)
+DebugWidget::DebugWidget(QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::Widget)
+    , ui(new Ui::DebugWidget)
 {
     ui->setupUi(this);
     initCtl();
-    initStyle();
     initData();
 }
 
-void Widget::initCtl()
+void DebugWidget::initCtl()
 {
     resize(1400,1000);
     QList<int> sizes;
@@ -30,33 +30,16 @@ void Widget::initCtl()
         if(manager)
             manager->removeDebugObject(var.toInt());
     });
-}
-
-void Widget::initStyle()
-{
-
-    this->setObjectName("boardFarme");
-    QString style=QString("QWidget{background-color :rgb(224,251,255);font-size:12pt}"
-                          "QWidget#boardFarme,QLineEdit,QTextEdit#inputEdit,QTextEdit#outputLab,QTabWidget::pane,QComboBox"
-                          "{border:1px solid rgb(192,192,192); border-radius:2px}"
-                          "QSplitter::handle{border: 1px solid rgb(192,192,192);width:1px}"
-                          "QPushButton{background-color :rgb(230,240,234);border-radius:6px}"
-                          "QPushButton::pressed{background-color :rgb(200,233,255);}"
-                          "QPushButton::hover{background-color :rgb(146,240,234);}"
-                          "QTreeWidget{font-size:8pt;}"
-                          "QTabWidget QTabBar::tab{background-color :rgb(206,230,234);}"
-                          "QTabWidget QTabBar::tab:selected{background-color :rgb(230,240,234);}"
-                          );
-    this->setStyleSheet(style);
 
 }
 
-void Widget::initData()
+
+void DebugWidget::initData()
 {
     manager=new DebuggerManager;
-    connect(manager,&DebuggerManager::newChildren,this,&Widget::onNewChildren);
-    connect(manager,&DebuggerManager::newData,this,&Widget::newData);
-    connect(manager,&DebuggerManager::showError,this,&Widget::showError);
+    connect(manager,&DebuggerManager::newChildren,this,&DebugWidget::onNewChildren);
+    connect(manager,&DebuggerManager::newData,this,&DebugWidget::newData);
+    connect(manager,&DebuggerManager::showError,this,&DebugWidget::showError);
 //    ValueSetting val;
 //    val.valueBitType=ValueBitType::INT8_T;
 //    val.endianType=EndianType::SMALL;
@@ -94,14 +77,13 @@ void Widget::initData()
 
 }
 
-Widget::~Widget()
+DebugWidget::~DebugWidget()
 {
     delete ui;
     delete manager;
 }
 
-
-void Widget::on_createObject_clicked()
+void DebugWidget::on_createObject_clicked()
 {
     CreateObject *widget=new CreateObject();
     widget->setWindowTitle("创建调试对象");
@@ -116,13 +98,13 @@ void Widget::on_createObject_clicked()
                           "QTabWidget QTabBar::tab:selected{background-color :rgb(230,240,234);}"
                           );
     widget->setStyleSheet(style);
-    connect(widget,&CreateObject::createDebug,this,&Widget::createDebug);
+    connect(widget,&CreateObject::createDebug,this,&DebugWidget::createDebug);
     widget->setAttribute(Qt::WA_DeleteOnClose,true);
     widget->show();
 }
 
 
-void Widget::on_deleteObject_clicked()
+void DebugWidget::on_deleteObject_clicked()
 {
     if(ui->treeWidget->currentIndex().row()>=0){
 
@@ -153,12 +135,12 @@ void Widget::on_deleteObject_clicked()
     }
 }
 
-void Widget::newData(int id, QByteArray by)
+void DebugWidget::newData(int id, QByteArray by)
 {
     QVariant var=ui->treeWidget->currentItem()->data(0,Qt::DisplayRole+1);
 }
 
-void Widget::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column)
+void DebugWidget::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column)
 {
     QVariant var=item->data(0,Qt::DisplayRole+1);
     int id=var.toInt();
@@ -180,7 +162,7 @@ void Widget::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column)
         std::shared_ptr<DebugObject> obj=manager->getDebugObject(id);
         if(obj){
             DebugerWidget *debugerWidget=new DebugerWidget(ui->tabWidget);
-            connect(debugerWidget,&DebugerWidget::showError,this,&Widget::showError);
+            connect(debugerWidget,&DebugerWidget::showError,this,&DebugWidget::showError);
             debugerWidget->setDebugObject(obj);
             ui->tabWidget->addTab(debugerWidget,protocolTypeToString(obj->getSetting().setting->protocolType)+QString::number(id));
             ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
@@ -191,7 +173,7 @@ void Widget::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column)
 
 }
 
-void Widget::createDebug(DebugSetting set)
+void DebugWidget::createDebug(DebugSetting set)
 {
     int ret=-1;
     if((ret=manager->createDebug(set))>0){
@@ -210,7 +192,7 @@ void Widget::createDebug(DebugSetting set)
 }
 
 
-void Widget::showError(QString error,bool pop)
+void DebugWidget::showError(QString error,bool pop)
 {
     ui->logInfo->append(error+"\n");
     if(pop)
@@ -218,7 +200,7 @@ void Widget::showError(QString error,bool pop)
 }
 
 
-void Widget::onNewChildren(int parentId, int id, std::shared_ptr<DebugObject> children)
+void DebugWidget::onNewChildren(int parentId, int id, std::shared_ptr<DebugObject> children)
 {
     QTreeWidgetItem *parentItem=ui->treeWidget->findId(parentId);
 
@@ -232,7 +214,7 @@ void Widget::onNewChildren(int parentId, int id, std::shared_ptr<DebugObject> ch
 }
 
 
-void Widget::on_tabWidget_tabCloseRequested(int index)
+void DebugWidget::on_tabWidget_tabCloseRequested(int index)
 {
     QWidget *wid= ui->tabWidget->widget(index);
 
@@ -242,5 +224,10 @@ void Widget::on_tabWidget_tabCloseRequested(int index)
     if(tmp){
         delete tmp;
     }
+}
+
+void DebugWidget::actionAddValueQuery()
+{
+
 }
 
